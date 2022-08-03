@@ -16,6 +16,13 @@ class MainActivity : AppCompatActivity() {
     private val recordButton: RecordButton by lazy{
         findViewById(R.id.recordButton)
     }
+    private val recordTimeTextView: CountUpView by lazy{
+        findViewById(R.id.recordTimeTextView)
+    }
+    private val soundVisualizerView: SoundVisualizerView by lazy {
+        findViewById(R.id.soundVisualizerView)
+    }
+
     private val requestPermissions = arrayOf(android.Manifest.permission.RECORD_AUDIO)
     private val recordingFilePath: String by lazy{
         "${externalCacheDir?.absolutePath}/recording.3gp"
@@ -69,6 +76,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bindView(){
+        soundVisualizerView.onRequestCurrentAmpLitude = {
+            recoder?.maxAmplitude ?: 0
+        }
         resetButton.setOnClickListener {
             stopPlay()
             state = State.BEFORE_RECODING
@@ -111,6 +121,8 @@ class MainActivity : AppCompatActivity() {
             prepare()
         }
        recoder?.start()
+       soundVisualizerView.startVisualizing(false)
+       recordTimeTextView.startCountUp()
        state = State.ON_RECODING
        Log.d("recoder","녹음시작")
     }
@@ -123,6 +135,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("stopRecoding","녹음종료")
         }
         recoder = null
+        soundVisualizerView.stopViualizing()
         state = State.AFTER_RECODING
 
     }
@@ -133,13 +146,18 @@ class MainActivity : AppCompatActivity() {
             prepare()
         }
         player?.start()  //재생
+        soundVisualizerView.startVisualizing(true)
+        recordTimeTextView.startCountUp()
         state = State.ON_PLAYING
     }
 
     private fun stopPlay(){
         player?.release()
         player = null
+        soundVisualizerView.stopViualizing()
+        recordTimeTextView.stopCountUp()
         state = State.AFTER_RECODING
+
 
     }
 
